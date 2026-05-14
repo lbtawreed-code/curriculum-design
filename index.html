@@ -6,49 +6,66 @@
   <meta name="description" content="تَوْرِيد - تصميم واعتماد وتوليد وحدات تدريب الشراء العام اللبناني عبر Webhooks إنتاجية." />
   <title>تَوْرِيد | تصميم واعتماد وتوليد الوحدات</title>
 
+  <!-- Prototype only. For production, install Tailwind through npm/PostCSS or Tailwind CLI. -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23071A2F'/%3E%3Ctext x='50' y='64' text-anchor='middle' font-size='54' font-family='Arial' fill='white'%3E%D8%AA%3C/text%3E%3C/svg%3E">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 
   <script>
+    /*
+      Recommended production mode:
+      - Keep USE_VERCEL_PROXY = true
+      - Create these Vercel API routes:
+        /api/curriculum-intake
+        /api/approve-curriculum
+        /api/module-intake
+
+      Direct n8n mode:
+      - Set USE_VERCEL_PROXY = false
+      - n8n/reverse proxy must return proper CORS headers
+    */
+    const USE_VERCEL_PROXY = true;
+
     const N8N_BASE_URL = "https://n8n.lbtawreed.online";
     const N8N_WEBHOOK_PREFIX = "webhook";
 
-    const WEBHOOK_TRANSPORT = {
-      curriculumIntake: "form",
-      approveCurriculum: "json",
-      moduleGenerator: "form"
-    };
-
-    const N8N_ENDPOINTS = {
+    const DIRECT_N8N_ENDPOINTS = {
       curriculumIntake: `${N8N_BASE_URL}/${N8N_WEBHOOK_PREFIX}/tawreed-curriculum-intake`,
       approveCurriculum: `${N8N_BASE_URL}/${N8N_WEBHOOK_PREFIX}/approve-curriculum`,
       moduleGenerator: `${N8N_BASE_URL}/${N8N_WEBHOOK_PREFIX}/tawreed-module-intake`
     };
-  </script>
 
-  <script>
+    const PROXY_ENDPOINTS = {
+      curriculumIntake: "/api/curriculum-intake",
+      approveCurriculum: "/api/approve-curriculum",
+      moduleGenerator: "/api/module-intake"
+    };
+
+    const ENDPOINTS = USE_VERCEL_PROXY ? PROXY_ENDPOINTS : DIRECT_N8N_ENDPOINTS;
+
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
-            arabic: ['Cairo', 'Tajawal', 'system-ui', 'sans-serif']
+            arabic: ["Cairo", "Tajawal", "system-ui", "sans-serif"]
           },
           colors: {
             tawreed: {
-              navy: '#071A2F',
-              deep: '#0B2545',
-              cyan: '#00A7C8',
-              sky: '#E8F7FB',
-              gold: '#C9A227',
-              ink: '#102033'
+              navy: "#071A2F",
+              deep: "#0B2545",
+              cyan: "#00A7C8",
+              sky: "#E8F7FB",
+              gold: "#C9A227",
+              ink: "#102033"
             }
           },
           boxShadow: {
-            glow: '0 24px 80px rgba(0, 167, 200, 0.22)',
-            soft: '0 18px 50px rgba(7, 26, 47, 0.12)'
+            glow: "0 24px 80px rgba(0, 167, 200, 0.22)",
+            soft: "0 18px 50px rgba(7, 26, 47, 0.12)"
           }
         }
       }
@@ -64,6 +81,10 @@
       background:
         radial-gradient(circle at top right, rgba(0, 167, 200, .25), transparent 30rem),
         linear-gradient(135deg, #071A2F 0%, #0B2545 100%);
+    }
+    button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
     }
   </style>
 </head>
@@ -134,25 +155,31 @@
             <p class="text-sm font-black uppercase tracking-[0.25em] text-tawreed-cyan">Inject</p>
             <h2 class="mt-2 text-3xl font-black text-tawreed-navy">بيانات المنهاج</h2>
           </div>
+
           <label class="block">
             <span class="required mb-2 block text-sm font-black text-tawreed-navy">Program ID</span>
             <input id="programId" name="ID" required class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-tawreed-cyan ltr-field" placeholder="p-26-101">
           </label>
+
           <label class="mt-4 block">
             <span class="required mb-2 block text-sm font-black text-tawreed-navy">عنوان البرنامج</span>
             <input id="programTitle" name="Title" required class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-tawreed-cyan" placeholder="أساسيات الشراء العام">
           </label>
+
           <label class="mt-4 block">
             <span class="mb-2 block text-sm font-black text-tawreed-navy">الهدف</span>
             <textarea id="programGoal" name="GOAL" rows="5" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-tawreed-cyan" placeholder="اكتب هدف البرنامج..."></textarea>
           </label>
+
           <label class="mt-4 block">
             <span class="mb-2 block text-sm font-black text-tawreed-navy">عدد الوحدات</span>
             <input id="moduleCount" name="Number of Modules" type="number" min="1" max="20" value="5" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-tawreed-cyan">
           </label>
-          <button type="submit" class="mt-6 w-full rounded-2xl bg-tawreed-cyan px-6 py-4 font-black text-white shadow-glow">
+
+          <button id="createButton" type="submit" class="mt-6 w-full rounded-2xl bg-tawreed-cyan px-6 py-4 font-black text-white shadow-glow">
             إنشاء المنهاج
           </button>
+
           <div id="createStatus" class="mt-4"></div>
         </form>
 
@@ -161,9 +188,11 @@
             <p class="text-sm font-black uppercase tracking-[0.25em] text-tawreed-cyan">Receive</p>
             <h2 class="mt-2 text-3xl font-black text-tawreed-navy">استجابة إنشاء المنهاج</h2>
           </div>
+
           <div id="curriculumResponseEmpty" class="rounded-2xl bg-slate-50 p-6 text-center font-bold text-slate-500 ring-1 ring-slate-200">
             ستظهر الوحدات هنا بعد إنشاء المنهاج.
           </div>
+
           <div id="curriculumResponse" class="hidden"></div>
         </div>
       </div>
@@ -176,16 +205,20 @@
             <p class="text-sm font-black uppercase tracking-[0.25em] text-tawreed-cyan">Review</p>
             <h2 class="mt-2 text-3xl font-black text-tawreed-navy">مراجعة المنهاج</h2>
           </div>
+
           <div class="flex flex-col gap-3 sm:flex-row">
-            <button type="button" onclick="submitApproval('approved')" class="rounded-2xl bg-tawreed-cyan px-6 py-3 font-black text-white shadow-glow">اعتماد</button>
-            <button type="button" onclick="submitApproval('needs_revision')" class="rounded-2xl bg-amber-500 px-6 py-3 font-black text-white shadow-soft">يحتاج تعديل</button>
-            <button type="button" onclick="submitApproval('rejected')" class="rounded-2xl bg-red-600 px-6 py-3 font-black text-white shadow-soft">رفض</button>
+            <button type="button" data-approval-button onclick="submitApproval('approved')" class="rounded-2xl bg-tawreed-cyan px-6 py-3 font-black text-white shadow-glow">اعتماد</button>
+            <button type="button" data-approval-button onclick="submitApproval('needs_revision')" class="rounded-2xl bg-amber-500 px-6 py-3 font-black text-white shadow-soft">يحتاج تعديل</button>
+            <button type="button" data-approval-button onclick="submitApproval('rejected')" class="rounded-2xl bg-red-600 px-6 py-3 font-black text-white shadow-soft">رفض</button>
           </div>
         </div>
+
         <label class="mt-6 block">
           <span class="mb-2 block text-sm font-black text-tawreed-navy">ملاحظات المراجعة</span>
           <textarea id="reviewNotes" rows="3" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-tawreed-cyan" placeholder="اختياري"></textarea>
         </label>
+
+        <div id="approvalStatus" class="mt-4"></div>
         <div id="modulesList" class="mt-6 grid gap-4"></div>
       </div>
     </section>
@@ -197,19 +230,34 @@
             <p class="text-sm font-black uppercase tracking-[0.25em] text-tawreed-cyan">Inject</p>
             <h2 class="mt-2 text-3xl font-black text-tawreed-navy">توليد وحدة</h2>
           </div>
+
           <label class="block">
             <span class="required mb-2 block text-sm font-black text-tawreed-navy">Program ID</span>
             <input id="moduleProgramId" name="program_id" required class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-tawreed-cyan ltr-field" placeholder="p-26-101">
           </label>
+
           <label class="mt-4 block">
             <span class="required mb-2 block text-sm font-black text-tawreed-navy">رقم الوحدة</span>
             <input id="moduleNumber" name="module_number" required type="number" min="1" value="1" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-tawreed-cyan">
           </label>
-          <button type="submit" class="mt-6 w-full rounded-2xl bg-tawreed-navy px-6 py-4 font-black text-white shadow-soft">توليد الوحدة</button>
+
+          <button id="moduleButton" type="submit" class="mt-6 w-full rounded-2xl bg-tawreed-navy px-6 py-4 font-black text-white shadow-soft">
+            توليد الوحدة
+          </button>
+
           <div id="moduleStatus" class="mt-4"></div>
         </form>
-        <div class="rounded-[2rem] bg-white p-6 shadow-soft ring-1 ring-slate-200">
-          <div id="moduleResponseEmpty" class="rounded-2xl bg-slate-50 p-6 text-center font-bold text-slate-500 ring-1 ring-slate-200">ستظهر نتيجة الوحدة هنا.</div>
+
+        <div id="result" class="rounded-[2rem] bg-white p-6 shadow-soft ring-1 ring-slate-200">
+          <div class="mb-6">
+            <p class="text-sm font-black uppercase tracking-[0.25em] text-tawreed-cyan">Receive</p>
+            <h2 class="mt-2 text-3xl font-black text-tawreed-navy">استجابة توليد الوحدة</h2>
+          </div>
+
+          <div id="moduleResponseEmpty" class="rounded-2xl bg-slate-50 p-6 text-center font-bold text-slate-500 ring-1 ring-slate-200">
+            ستظهر نتيجة الوحدة هنا.
+          </div>
+
           <div id="moduleResponse" class="hidden"></div>
         </div>
       </div>
@@ -220,94 +268,348 @@
     let latestPreview = null;
 
     function escapeHtml(value) {
-      return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
 
     function unwrapN8nResponse(data) {
-      if (Array.isArray(data)) return data.length === 1 ? unwrapN8nResponse(data[0]) : data.map(item => unwrapN8nResponse(item));
-      if (data && typeof data === "object" && data.json) return unwrapN8nResponse(data.json);
+      if (Array.isArray(data)) {
+        return data.length === 1
+          ? unwrapN8nResponse(data[0])
+          : data.map(item => unwrapN8nResponse(item));
+      }
+
+      if (data && typeof data === "object" && "json" in data) {
+        return unwrapN8nResponse(data.json);
+      }
+
       return data;
     }
 
     function showStatus(elementId, type, message) {
-      const styles = { loading: "bg-cyan-50 text-tawreed-deep ring-1 ring-cyan-100", success: "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-100", error: "bg-red-50 text-red-800 ring-1 ring-red-100" };
-      document.getElementById(elementId).innerHTML = `<div class="rounded-2xl p-4 text-sm font-bold leading-7 ${styles[type] || "bg-slate-50"}">${escapeHtml(message)}</div>`;
+      const element = document.getElementById(elementId);
+      if (!element) return;
+
+      const styles = {
+        loading: "bg-cyan-50 text-tawreed-deep ring-1 ring-cyan-100",
+        success: "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-100",
+        error: "bg-red-50 text-red-800 ring-1 ring-red-100",
+        info: "bg-slate-50 text-slate-700 ring-1 ring-slate-200"
+      };
+
+      element.innerHTML = `
+        <div class="rounded-2xl p-4 text-sm font-bold leading-7 ${styles[type] || styles.info}">
+          ${escapeHtml(message)}
+        </div>
+      `;
     }
 
-async function postForm(url, payload) {
-  // 1. Convert payload to URLSearchParams for a 'Simple Request'
-  const body = new URLSearchParams();
-  Object.entries(payload).forEach(([key, value]) => {
-    body.append(key, value == null ? "" : String(value));
-  });
+    function clearStatus(elementId) {
+      const element = document.getElementById(elementId);
+      if (element) element.innerHTML = "";
+    }
 
-  try {
-    // 2. We use a standard fetch without custom headers to avoid OPTIONS
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: body.toString()
-    });
+    function setButtonLoading(buttonId, isLoading, loadingText, defaultText) {
+      const button = document.getElementById(buttonId);
+      if (!button) return;
 
-    // 3. Handle the response
-    return await handleResponse(response);
-  } catch (error) {
-    // If it still fails, it's likely a CORS block at the n8n/Docker level
-    console.error("Connection Error:", error);
-    throw new Error("Could not connect to n8n. Check if the workflow is ACTIVE.");
-  }
-}
-    function renderCurriculum(data) {
-      latestPreview = normalizePreview(data);
-      document.getElementById("curriculumResponseEmpty").classList.add("hidden");
-      document.getElementById("curriculumResponse").classList.remove("hidden");
-      const program = latestPreview.program;
-      document.getElementById("curriculumResponse").innerHTML = `
-        <div class="rounded-2xl bg-tawreed-sky p-5">
-          <p class="text-xs font-black text-slate-500">Program: ${escapeHtml(program.program_title)} (${escapeHtml(program.program_id)})</p>
-        </div>`;
-      document.getElementById("modulesList").innerHTML = latestPreview.curriculum.map(m => `
-        <div class="bg-slate-50 p-4 rounded-xl ring-1 ring-slate-200">
-          <p class="font-black">${escapeHtml(m.title)}</p>
-        </div>`).join("");
-      document.getElementById("review").classList.remove("hidden");
+      button.disabled = isLoading;
+      button.textContent = isLoading ? loadingText : defaultText;
+    }
+
+    function setApprovalButtonsLoading(isLoading) {
+      document.querySelectorAll("[data-approval-button]").forEach(button => {
+        button.disabled = isLoading;
+      });
+    }
+
+    async function handleResponse(response) {
+      const contentType = response.headers.get("content-type") || "";
+      const text = await response.text();
+
+      let data = null;
+
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = {
+            raw: text
+          };
+        }
+      } else {
+        data = {};
+      }
+
+      if (!response.ok) {
+        const message =
+          data?.message ||
+          data?.error ||
+          data?.raw ||
+          `Request failed with status ${response.status}`;
+
+        throw new Error(message);
+      }
+
+      return data;
+    }
+
+    async function postForm(url, payload) {
+      const body = new URLSearchParams();
+
+      Object.entries(payload).forEach(([key, value]) => {
+        body.append(key, value == null ? "" : String(value));
+      });
+
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+          },
+          body: body.toString()
+        });
+
+        return await handleResponse(response);
+      } catch (error) {
+        console.error("Form request failed:", error);
+
+        if (String(error?.message || "").includes("Failed to fetch")) {
+          throw new Error("تعذر الاتصال بالخادم. إذا كنت تستخدم n8n مباشرة، فهذا غالباً بسبب CORS. استخدم Vercel API proxy أو فعّل CORS في n8n.");
+        }
+
+        throw error;
+      }
+    }
+
+    async function postJson(url, payload) {
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        return await handleResponse(response);
+      } catch (error) {
+        console.error("JSON request failed:", error);
+
+        if (String(error?.message || "").includes("Failed to fetch")) {
+          throw new Error("تعذر الاتصال بالخادم. طلبات JSON تحتاج CORS/OPTIONS إذا كانت مرسلة مباشرة إلى n8n.");
+        }
+
+        throw error;
+      }
     }
 
     function normalizePreview(data) {
       data = unwrapN8nResponse(data);
-      const program = data.program || {};
-      const curriculum = data.curriculum || [];
-      return { program, curriculum, approval_payload: data.approval_payload || { ...program, modules: curriculum } };
+
+      if (!data || typeof data !== "object") {
+        return {
+          program: {},
+          curriculum: [],
+          approval_payload: {}
+        };
+      }
+
+      const program = data.program || {
+        program_id: data.program_id || data.ID || "",
+        program_title: data.program_title || data.Title || ""
+      };
+
+      const curriculum =
+        Array.isArray(data.curriculum) ? data.curriculum :
+        Array.isArray(data.modules) ? data.modules :
+        [];
+
+      return {
+        program,
+        curriculum,
+        approval_payload: data.approval_payload || {
+          ...program,
+          modules: curriculum
+        },
+        raw: data
+      };
     }
 
-    document.getElementById("curriculumForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      showStatus("createStatus", "loading", "جاري الإرسال...");
+    function renderCurriculum(data) {
+      latestPreview = normalizePreview(data);
+
+      const program = latestPreview.program || {};
+      const curriculum = latestPreview.curriculum || [];
+
+      const responseEmpty = document.getElementById("curriculumResponseEmpty");
+      const response = document.getElementById("curriculumResponse");
+      const modulesList = document.getElementById("modulesList");
+      const review = document.getElementById("review");
+
+      responseEmpty.classList.add("hidden");
+      response.classList.remove("hidden");
+
+      const programId = program.program_id || program.ID || document.getElementById("programId").value;
+      const programTitle = program.program_title || program.Title || document.getElementById("programTitle").value;
+
+      document.getElementById("moduleProgramId").value = programId || "";
+
+      response.innerHTML = `
+        <div class="space-y-4">
+          <div class="rounded-2xl bg-tawreed-sky p-5 ring-1 ring-cyan-100">
+            <p class="text-xs font-black text-slate-500">Program ID</p>
+            <p class="mt-1 ltr-field text-lg font-black text-tawreed-navy">${escapeHtml(programId || "—")}</p>
+            <p class="mt-4 text-xs font-black text-slate-500">عنوان البرنامج</p>
+            <p class="mt-1 text-lg font-black text-tawreed-navy">${escapeHtml(programTitle || "—")}</p>
+          </div>
+
+          <div class="rounded-2xl bg-slate-50 p-5 ring-1 ring-slate-200">
+            <p class="mb-3 text-sm font-black text-tawreed-navy">الوحدات المستلمة: ${curriculum.length}</p>
+            <pre class="max-h-96 overflow-auto whitespace-pre-wrap rounded-xl bg-white p-4 text-xs leading-6 text-slate-700 ring-1 ring-slate-200 ltr-field">${escapeHtml(JSON.stringify(latestPreview.raw || data, null, 2))}</pre>
+          </div>
+        </div>
+      `;
+
+      modulesList.innerHTML = curriculum.length
+        ? curriculum.map((module, index) => {
+            const title = module.title || module.module_title || module.name || `الوحدة ${index + 1}`;
+            const number = module.module_number || module.number || index + 1;
+            const description = module.description || module.summary || module.goal || "";
+
+            return `
+              <div class="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                <p class="text-xs font-black text-slate-500">Module ${escapeHtml(number)}</p>
+                <p class="mt-1 text-lg font-black text-tawreed-navy">${escapeHtml(title)}</p>
+                ${description ? `<p class="mt-2 text-sm font-semibold leading-7 text-slate-600">${escapeHtml(description)}</p>` : ""}
+              </div>
+            `;
+          }).join("")
+        : `
+          <div class="rounded-2xl bg-amber-50 p-4 font-bold text-amber-800 ring-1 ring-amber-100">
+            تم استلام الرد، لكن لم يتم العثور على قائمة وحدات باسم curriculum أو modules.
+          </div>
+        `;
+
+      review.classList.remove("hidden");
+      review.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function renderModule(data) {
+      const unwrapped = unwrapN8nResponse(data);
+
+      document.getElementById("moduleResponseEmpty").classList.add("hidden");
+      const response = document.getElementById("moduleResponse");
+      response.classList.remove("hidden");
+
+      let title = "نتيجة توليد الوحدة";
+      let bodyHtml = "";
+
+      if (unwrapped && typeof unwrapped === "object") {
+        title =
+          unwrapped.title ||
+          unwrapped.module_title ||
+          unwrapped.name ||
+          "نتيجة توليد الوحدة";
+
+        bodyHtml = `
+          <div class="rounded-2xl bg-tawreed-sky p-5 ring-1 ring-cyan-100">
+            <p class="text-xs font-black text-slate-500">Module Result</p>
+            <h3 class="mt-1 text-2xl font-black text-tawreed-navy">${escapeHtml(title)}</h3>
+          </div>
+
+          <div class="mt-4 rounded-2xl bg-slate-50 p-5 ring-1 ring-slate-200">
+            <pre class="max-h-[34rem] overflow-auto whitespace-pre-wrap rounded-xl bg-white p-4 text-xs leading-6 text-slate-700 ring-1 ring-slate-200 ltr-field">${escapeHtml(JSON.stringify(unwrapped, null, 2))}</pre>
+          </div>
+        `;
+      } else {
+        bodyHtml = `
+          <div class="rounded-2xl bg-slate-50 p-5 ring-1 ring-slate-200">
+            <pre class="whitespace-pre-wrap text-sm leading-7 text-slate-700">${escapeHtml(unwrapped)}</pre>
+          </div>
+        `;
+      }
+
+      response.innerHTML = bodyHtml;
+      document.getElementById("result").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    document.getElementById("curriculumForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      clearStatus("approvalStatus");
+      showStatus("createStatus", "loading", "جاري إرسال بيانات المنهاج...");
+      setButtonLoading("createButton", true, "جاري الإرسال...", "إنشاء المنهاج");
+
       try {
-        const data = await postForm(N8N_ENDPOINTS.curriculumIntake, Object.fromEntries(new FormData(e.target)));
+        const payload = Object.fromEntries(new FormData(event.target));
+        const data = await postForm(ENDPOINTS.curriculumIntake, payload);
+
         renderCurriculum(data);
-        showStatus("createStatus", "success", "تم الاستلام.");
-      } catch (err) { showStatus("createStatus", "error", err.message); }
+        showStatus("createStatus", "success", "تم استلام مخطط المنهاج بنجاح.");
+      } catch (error) {
+        showStatus("createStatus", "error", error.message || "حدث خطأ أثناء إنشاء المنهاج.");
+      } finally {
+        setButtonLoading("createButton", false, "جاري الإرسال...", "إنشاء المنهاج");
+      }
     });
 
     async function submitApproval(status) {
-      showStatus("approvalStatus", "loading", "جاري الاعتماد...");
+      if (!latestPreview) {
+        showStatus("approvalStatus", "error", "يجب إنشاء المنهاج أولاً قبل الاعتماد.");
+        return;
+      }
+
+      showStatus("approvalStatus", "loading", "جاري إرسال قرار المراجعة...");
+      setApprovalButtonsLoading(true);
+
       try {
-        const payload = { ...latestPreview.approval_payload, approval_status: status };
-        await postJson(N8N_ENDPOINTS.approveCurriculum, payload);
-        showStatus("approvalStatus", "success", "تم الاعتماد.");
-      } catch (err) { showStatus("approvalStatus", "error", err.message); }
+        const notes = document.getElementById("reviewNotes").value || "";
+
+        const payload = {
+          ...latestPreview.approval_payload,
+          approval_status: status,
+          review_notes: notes,
+          reviewed_at: new Date().toISOString()
+        };
+
+        await postJson(ENDPOINTS.approveCurriculum, payload);
+
+        const label = {
+          approved: "تم اعتماد المنهاج.",
+          needs_revision: "تم إرسال القرار: يحتاج تعديل.",
+          rejected: "تم رفض المنهاج."
+        }[status] || "تم إرسال قرار المراجعة.";
+
+        showStatus("approvalStatus", "success", label);
+      } catch (error) {
+        showStatus("approvalStatus", "error", error.message || "حدث خطأ أثناء إرسال قرار المراجعة.");
+      } finally {
+        setApprovalButtonsLoading(false);
+      }
     }
 
-    document.getElementById("moduleForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      showStatus("moduleStatus", "loading", "جاري التوليد...");
+    document.getElementById("moduleForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      showStatus("moduleStatus", "loading", "جاري توليد الوحدة...");
+      setButtonLoading("moduleButton", true, "جاري التوليد...", "توليد الوحدة");
+
       try {
-        const data = await postForm(N8N_ENDPOINTS.moduleGenerator, Object.fromEntries(new FormData(e.target)));
-        showStatus("moduleStatus", "success", "تم التوليد.");
-      } catch (err) { showStatus("moduleStatus", "error", err.message); }
+        const payload = Object.fromEntries(new FormData(event.target));
+        const data = await postForm(ENDPOINTS.moduleGenerator, payload);
+
+        renderModule(data);
+        showStatus("moduleStatus", "success", "تم توليد الوحدة بنجاح.");
+      } catch (error) {
+        showStatus("moduleStatus", "error", error.message || "حدث خطأ أثناء توليد الوحدة.");
+      } finally {
+        setButtonLoading("moduleButton", false, "جاري التوليد...", "توليد الوحدة");
+      }
     });
   </script>
 </body>
